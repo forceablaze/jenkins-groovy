@@ -1,14 +1,16 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
+import sys
 import json
 import requests
 
 from requests.auth import HTTPBasicAuth
 from optparse import OptionParser
-from urllib.parse import urlparse
 
-import functools
-print_flush = functools.partial(print, flush=True)
+if sys.version_info.major == 3:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 def executeGroovyScript(scriptTextUrl, user, token, script):
     data = {'script': script}
@@ -19,7 +21,7 @@ def executeGroovyScript(scriptTextUrl, user, token, script):
     if response.status_code != 200:
         raise Exception('execute failed. code='+ str(response.status_code))
 
-    print_flush(response.text)
+    print(response.text)
 
 if __name__ == '__main__':
 
