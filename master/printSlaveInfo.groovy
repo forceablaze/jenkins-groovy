@@ -14,7 +14,7 @@ print_hostname = 'println InetAddress.localHost.canonicalHostName';
 def printInstanceInfo = { Slave slave ->
 
   slaveName = slave.nodeName
-  match = slaveName ==~ /osw-v0002.*/
+  match = slaveName ==~ /swict-v0062.*/
 
   if(!match)
     return

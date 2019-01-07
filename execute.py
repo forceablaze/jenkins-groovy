@@ -12,6 +12,19 @@ if sys.version_info.major == 3:
 else:
     from urlparse import urlparse
 
+def executeGroovyScriptOnNode(scriptTextUrl, nodeName, user, token, script):
+
+    groovy_script = "import hudson.util.RemotingDiagnostics\n" \
+    "String result\n" \
+    "Hudson.instance.slaves.find { agent ->\n" \
+    "    agent.name == \"" + nodeName + "\"\n" \
+    "}.with { agent ->\n" \
+    "    result = RemotingDiagnostics.executeGroovy(\"\"\"" + script.strip() + "\"\"\", agent.channel)\n" \
+    "}\n" \
+    "println result"
+
+    executeGroovyScript(scriptTextUrl, user, token, groovy_script)
+
 def executeGroovyScript(scriptTextUrl, user, token, script):
     data = {'script': script}
     response = requests.post(
@@ -43,7 +56,16 @@ if __name__ == '__main__':
         action = "store", dest = "script_path",
         help = "Groovy script path")
 
+    parser.add_option("-a", "--args", type="string", default=None,
+        action = "store", dest = "args",
+        help = "JSON string arguments")
+
     (options, args) = parser.parse_args()  
+
+    json_args = None
+    if options.args is not None:
+        json_args = json.loads(options.args)
+        print(json_args)
 
     # defult script
     script = 'println(Jenkins.instance.pluginManager.plugins)'
@@ -51,10 +73,17 @@ if __name__ == '__main__':
         with open(options.script_path, 'r') as file:
             script = file.read()
 
+    if json_args is not None and json_args['node'] is not None:
+        executeGroovyScriptOnNode(
+            urlparse(options.url + '/scriptText').geturl(),
+            json_args['node'],
+            options.username,
+            options.token,
+            script)
+        sys.exit(0)
+
     executeGroovyScript(
         urlparse(options.url + '/scriptText').geturl(),
         options.username,
         options.token,
         script)
-        
-
