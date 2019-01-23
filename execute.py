@@ -36,14 +36,15 @@ def executeGroovyScript(scriptTextUrl, user, token, script, **args):
         viewPath = Path(args['view'])
         viewArgString = "viewPath = ["
         for p in viewPath.parts:
-            print(p)
             viewArgString += '\'{}\','.format(p)
         viewArgString += "]"
         argString += viewArgString
     except KeyError:
         pass
 
-    script += 'run({})'.format(argString)
+    appendScript = 'run({})'.format(argString)
+    print(appendScript)
+    script += appendScript
     data = {'script': script}
     response = requests.post(
             scriptTextUrl, auth=HTTPBasicAuth(user, token),
