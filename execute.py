@@ -4,6 +4,7 @@ import sys
 import json
 import requests
 
+from pathlib import Path
 from requests.auth import HTTPBasicAuth
 from optparse import OptionParser
 
@@ -23,9 +24,26 @@ def executeGroovyScriptOnNode(scriptTextUrl, nodeName, user, token, script):
     "}\n" \
     "println result"
 
-    executeGroovyScript(scriptTextUrl, user, token, groovy_script)
+    executeGroovyScript(scriptTextUrl, user, token, groovy_script, None)
 
-def executeGroovyScript(scriptTextUrl, user, token, script):
+def executeGroovyScript(scriptTextUrl, user, token, script, **args):
+
+    for key in args:
+        print(args[key])
+
+    argString = ""
+    try:
+        viewPath = Path(args['view'])
+        viewArgString = "viewPath = ["
+        for p in viewPath.parts:
+            print(p)
+            viewArgString += '\'{}\','.format(p)
+        viewArgString += "]"
+        argString += viewArgString
+    except KeyError:
+        pass
+
+    script += 'run({})'.format(argString)
     data = {'script': script}
     response = requests.post(
             scriptTextUrl, auth=HTTPBasicAuth(user, token),
@@ -33,7 +51,6 @@ def executeGroovyScript(scriptTextUrl, user, token, script):
 
     if response.status_code != 200:
         raise Exception('execute failed. code='+ str(response.status_code))
-
     print(response.text)
 
 if __name__ == '__main__':
@@ -62,7 +79,7 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()  
 
-    json_args = None
+    json_args = {}
     if options.args is not None:
         json_args = json.loads(options.args)
         print(json_args)
@@ -73,7 +90,7 @@ if __name__ == '__main__':
         with open(options.script_path, 'r') as file:
             script = file.read()
 
-    if json_args is not None and json_args['node'] is not None:
+    if 'node' in json_args:
         executeGroovyScriptOnNode(
             urlparse(options.url + '/scriptText').geturl(),
             json_args['node'],
@@ -86,4 +103,5 @@ if __name__ == '__main__':
         urlparse(options.url + '/scriptText').geturl(),
         options.username,
         options.token,
-        script)
+        script,
+        **json_args)

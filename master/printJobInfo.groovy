@@ -12,6 +12,8 @@ def printJobInfo = { Job job ->
   println()
 }
 
-Hudson.instance.getAllItems(Job.class).each {
-  printJobInfo(it)
+def run = {
+  Hudson.instance.getAllItems(Job.class).each {
+    printJobInfo(it)
+  }
 }

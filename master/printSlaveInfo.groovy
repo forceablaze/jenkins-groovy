@@ -42,8 +42,10 @@ def printInstanceInfo = { Slave slave ->
   }
 }
 
-Hudson.instance.slaves.each { printInstanceInfo(it) }
+def run = {
+  Hudson.instance.slaves.each { printInstanceInfo(it) }
 
-outputMap.each { k, v ->
-  println v
+  outputMap.each { k, v ->
+    println v
+  }
 }
