@@ -5,6 +5,10 @@ import hudson.plugins.nested_view.NestedView;
 import java.time.Duration
 import java.text.SimpleDateFormat
 
+def printlnJSONPrefix = { text ->
+  println('JSONSTRING:' + text)
+}
+
 // hudson.model.FreeStyleBuild
 def printBuildInfo = { Run build ->
   println 'Build number:' + build.number
@@ -32,12 +36,7 @@ def calcAverageRecoveryTime = { totalFailedTime, buildCount ->
 def printJobInfo = { Job job ->
   println('job name:' + job.name)
 
-  // pipeline job org.jenkinsci.plugins.workflow.job.WorkflowJob
-  println('\t job type:' + job.class)
-
-  //println('\n\t description:' + job.description + '\n')
-  println('\t isDisabled:' + job.disabled)
-  println('\t' + job.url)
+  printlnJSONPrefix('      \"name\":\"' + job.name + '\",')
 
   // never null. The first entry is the latest build.
   def builds = job.getBuilds()
@@ -81,7 +80,11 @@ def printJobInfo = { Job job ->
   long mttr = calcAverageRecoveryTime(totalRecoveryTime, buildCount)
   println 'mttr: ' + mttr
   def duration  = Duration.ofMillis(mttr)
-  println formatDuration(duration.toMillis())
+  //println formatDuration(duration.toMillis())
+  printlnJSONPrefix('      \"build_count\":' + buildCount + ',')
+  printlnJSONPrefix('      \"total_recovery_time\":' + totalRecoveryTime + ',')
+  printlnJSONPrefix('      \"mttr\":' + mttr + ',')
+  printlnJSONPrefix('      \"mttr_string\":\"' + formatDuration(duration.toMillis()) + '\"')
   println()
 }
 
@@ -112,8 +115,34 @@ getNestedView = { views, viewList ->
 }
 
 def run = { viewPath ->
-  view = getNestedView(Hudson.instance.getViews(), viewPath)
-  view.getItems().each {
-    printJobInfo(it)
+
+  def viewPathStr = ""
+  for( def i = 0; i < viewPath.size; i++) {
+    viewPathStr += viewPath[i]
+	if(i + 1 < viewPath.size)
+	  viewPathStr += '/'
   }
+
+  view = getNestedView(Hudson.instance.getViews(), viewPath)
+
+  printlnJSONPrefix('{')
+  printlnJSONPrefix('  \"view_path\":\"' + viewPathStr + '\",')
+  printlnJSONPrefix('  \"jobs\" :[')
+
+  list = view.getItems()
+  for(def i = 0; i < list.size; i++) {
+	it = list[i]
+    printlnJSONPrefix('    {')
+
+
+    printJobInfo(it)
+
+    if(i + 1 < list.size)
+      printlnJSONPrefix('    },')
+	else
+      printlnJSONPrefix('    }')
+  }
+
+  printlnJSONPrefix('  ]')
+  printlnJSONPrefix('}')
 }

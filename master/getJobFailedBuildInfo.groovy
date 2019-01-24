@@ -100,7 +100,7 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
 	else
 	  failedBuildCount += 1
 
-      printlnJSONPrefix('        }')
+    printlnJSONPrefix('        }')
   }
 
 
