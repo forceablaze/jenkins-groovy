@@ -39,6 +39,12 @@ def executeGroovyScript(scriptTextUrl, user, token, script, **args):
             viewArgString += '\'{}\','.format(p)
         viewArgString += "]"
         argString += viewArgString
+
+
+        fromDateString = args['from']
+        toDateString = args['to']
+        argString += ', fromDateString = \'' + fromDateString + '\''
+        argString += ', toDateString = \'' + toDateString + '\''
     except KeyError:
         pass
 
