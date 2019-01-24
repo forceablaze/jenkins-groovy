@@ -24,11 +24,13 @@ def executeGroovyScriptOnNode(scriptTextUrl, nodeName, user, token, script):
     "}\n" \
     "println result"
 
-    executeGroovyScript(scriptTextUrl, user, token, groovy_script, None)
+    executeGroovyScript(scriptTextUrl, user, token, groovy_script)
 
 def executeGroovyScript(scriptTextUrl, user, token, script, **args):
 
+    append = False
     for key in args:
+        append = True
         print(args[key])
 
     argString = ""
@@ -48,9 +50,11 @@ def executeGroovyScript(scriptTextUrl, user, token, script, **args):
     except KeyError:
         pass
 
-    appendScript = 'run({})'.format(argString)
-    print(appendScript)
-    script += appendScript
+    if append:
+        appendScript = 'run({})'.format(argString)
+        print(appendScript)
+        script += appendScript
+
     data = {'script': script}
     response = requests.post(
             scriptTextUrl, auth=HTTPBasicAuth(user, token),
