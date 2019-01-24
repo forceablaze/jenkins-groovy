@@ -88,12 +88,27 @@ if __name__ == '__main__':
         action = "store", dest = "args",
         help = "JSON string arguments")
 
+    parser.add_option("-v", "--view-path", type="string", default=None,
+        action = "store", dest = "view_path",
+        help = "The view path")
+
+    parser.add_option("-n", "--node-name", type="string", default=None,
+        action = "store", dest = "node_name",
+        help = "The node name")
+
+
     (options, args) = parser.parse_args()  
 
     json_args = {}
     if options.args is not None:
         json_args = json.loads(options.args)
         print(json_args)
+
+    if options.view_path is not None:
+        json_args['view'] = options.view_path
+
+    if options.node_name is not None:
+        json_args['node'] = options.node_name
 
     # defult script
     script = 'println(Jenkins.instance.pluginManager.plugins)'
