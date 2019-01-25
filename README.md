@@ -10,7 +10,11 @@ pip3 install -r requirements.txt
     -u <user id> \
     -t <user token> \
 	-U <Jenkins URL> \
-	-g <groovy script path>
+	-g <groovy script path> \
+	(--node-name <node name> \)
+	(--view-path <view path> \)
+	(--from-date <yyyyMMddHHmmss> \)
+	(--to-date <yyyyMMddHHmmss> \)
 	(-a <JSON String>)
 ```
 
