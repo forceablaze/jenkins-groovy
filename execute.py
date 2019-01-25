@@ -96,6 +96,14 @@ if __name__ == '__main__':
         action = "store", dest = "node_name",
         help = "The node name")
 
+    parser.add_option("-F", "--from-date", type="string", default=None,
+        action = "store", dest = "from_date",
+        help = "from date time, ex: 20180101000000")
+
+    parser.add_option("-T", "--to-date", type="string", default=None,
+        action = "store", dest = "to_date",
+        help = "to date time, ex: 20180101000000")
+
 
     (options, args) = parser.parse_args()  
 
@@ -109,6 +117,12 @@ if __name__ == '__main__':
 
     if options.node_name is not None:
         json_args['node'] = options.node_name
+
+    if options.from_date is not None:
+        json_args['from'] = options.from_date
+
+    if options.to_date is not None:
+        json_args['to'] = options.to_date
 
     # defult script
     script = 'println(Jenkins.instance.pluginManager.plugins)'

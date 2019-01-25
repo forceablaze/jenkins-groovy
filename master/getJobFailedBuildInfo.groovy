@@ -164,7 +164,7 @@ def run = { viewPath, fromDateString = "20190101000000", toDateString = "2019012
   printlnJSONPrefix('{')
   printlnJSONPrefix('  \"view_path\":\"' + viewPathStr + '\",')
   printlnJSONPrefix('  \"from_date\":\"' + fromDateString + '\",')
-  printlnJSONPrefix('  \"to_date\":\"' + fromDateString + '\",')
+  printlnJSONPrefix('  \"to_date\":\"' + toDateString + '\",')
   printlnJSONPrefix('  \"jobs\" :[')
 
   list = view.getItems()
