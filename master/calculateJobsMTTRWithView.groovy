@@ -118,7 +118,7 @@ getNestedView = { views, viewList ->
   }
 }
 
-def run = { viewPath ->
+def run = { viewPath, fromDateString, toDateString ->
 
   def viewPathStr = ""
   for( def i = 0; i < viewPath.size; i++) {
