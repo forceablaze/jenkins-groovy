@@ -4,7 +4,10 @@
 import sys
 import json
 import requests
+import time
+
 import datetime
+from datetime import timedelta
 
 from pathlib import Path
 from requests.auth import HTTPBasicAuth
@@ -129,6 +132,8 @@ if __name__ == '__main__':
         json_args['to'] = options.to_date
     else:
         now = datetime.datetime.now()
+        # for JIT time UTC+9
+        now += timedelta(seconds=32400)
         json_args['to'] = now.strftime("%Y%m%d%H%M%S")
 
     # defult script
