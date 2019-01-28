@@ -40,6 +40,7 @@ def printJobInfo = { Job job ->
 
   // never null. The first entry is the latest build.
   def builds = job.getBuilds()
+  def lastBuild = job.getLastBuild()
 
   def failedBuildTime = 0
   def failedBuildNumber = 0
@@ -80,8 +81,11 @@ def printJobInfo = { Job job ->
   long mttr = calcAverageRecoveryTime(totalRecoveryTime, buildCount)
   println 'mttr: ' + mttr
   def duration  = Duration.ofMillis(mttr)
+
   //println formatDuration(duration.toMillis())
   printlnJSONPrefix('      \"build_count\":' + buildCount + ',')
+  if(lastBuild != null)
+	  printlnJSONPrefix('      \"last_build_number\":' + lastBuild.number + ',')
   printlnJSONPrefix('      \"total_recovery_time\":' + totalRecoveryTime + ',')
   printlnJSONPrefix('      \"mttr\":' + mttr + ',')
   printlnJSONPrefix('      \"mttr_string\":\"' + formatDuration(duration.toMillis()) + '\"')
@@ -124,6 +128,8 @@ def run = { viewPath ->
   }
 
   view = getNestedView(Hudson.instance.getViews(), viewPath)
+
+  println view.class
 
   printlnJSONPrefix('{')
   printlnJSONPrefix('  \"view_path\":\"' + viewPathStr + '\",')

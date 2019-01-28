@@ -1,8 +1,10 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 import sys
 import json
 import requests
+import datetime
 
 from pathlib import Path
 from requests.auth import HTTPBasicAuth
@@ -120,9 +122,14 @@ if __name__ == '__main__':
 
     if options.from_date is not None:
         json_args['from'] = options.from_date
+    else:
+        json_args['from'] = "19000101000000"
 
     if options.to_date is not None:
         json_args['to'] = options.to_date
+    else:
+        now = datetime.datetime.now()
+        json_args['to'] = now.strftime("%Y%m%d%H%M%S")
 
     # defult script
     script = 'println(Jenkins.instance.pluginManager.plugins)'

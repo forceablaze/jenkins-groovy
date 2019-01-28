@@ -56,6 +56,7 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
 
   // never null. The first entry is the latest build.
   def builds = job.getBuilds()
+  def lastBuild = job.getLastBuild()
 
   def failedBuildCount = 0
   def successBuildCount = 0
@@ -117,6 +118,8 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
   printlnJSONPrefix('      ],')
 
   printlnJSONPrefix('      \"build_count\":' + buildCount + ',')
+  if(lastBuild != null)
+	  printlnJSONPrefix('      \"last_build_number\":' + lastBuild.number + ',')
   printlnJSONPrefix('      \"failed_count\":' + failedBuildCount + ',')
   printlnJSONPrefix('      \"success_count\":' + successBuildCount + ',')
   printlnJSONPrefix('      \"failed_rate\":' + failed_rate + ',')
@@ -149,7 +152,7 @@ getNestedView = { views, viewList ->
   }
 }
 
-def run = { viewPath, fromDateString = "20190101000000", toDateString = "20190123000000" ->
+def run = { viewPath, fromDateString = "19000101000000", toDateString = "20190123000000" ->
 
   def viewPathStr = ""
   for( def i = 0; i < viewPath.size; i++) {
