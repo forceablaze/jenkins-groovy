@@ -122,6 +122,7 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
   def duration  = Duration.ofMillis(mttr)
 
   //println formatDuration(duration.toMillis())
+  printlnJSONPrefix('        \"name\":\"' + job.name + '\",')
   printlnJSONPrefix('        \"build_count\":' + buildCount + ',')
   if(lastBuild != null)
 	  printlnJSONPrefix('        \"last_build_number\":' + lastBuild.number + ',')

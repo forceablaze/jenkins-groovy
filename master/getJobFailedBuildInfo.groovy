@@ -135,6 +135,7 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
 
   printlnJSONPrefix('        ],')
 
+  printlnJSONPrefix('        \"name\":\"' + job.name + '\",')
   printlnJSONPrefix('        \"build_count\":' + buildCount + ',')
   if(lastBuild != null)
 	  printlnJSONPrefix('        \"last_build_number\":' + lastBuild.number + ',')
