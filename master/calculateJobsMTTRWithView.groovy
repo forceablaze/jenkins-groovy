@@ -5,6 +5,8 @@ import hudson.plugins.nested_view.NestedView;
 import java.time.Duration
 import java.text.SimpleDateFormat
 
+def dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+
 def printlnJSONPrefix = { text ->
   println('JSONSTRING:' + text)
 }
@@ -33,11 +35,18 @@ def calcAverageRecoveryTime = { totalFailedTime, buildCount ->
   return totalFailedTime / buildCount
 }
 
-def printJobInfo = { Job job ->
+def printJobInfo = { Job job, fromDateString, toDateString ->
   println('job name:' + job.name)
 
   printlnJSONPrefix('      \"' + job.name +'\":{')
   printlnJSONPrefix('        \"builds\":[')
+
+  def fromDate = dateFormat.parse(fromDateString)
+  def toDate = dateFormat.parse(toDateString)
+  println "check build from " + fromDate + " to " + toDate
+
+  long fromTime = fromDate.time
+  long toTime = toDate.time
 
   // never null. The first entry is the latest build.
   def builds = job.getBuilds()
@@ -51,6 +60,12 @@ def printJobInfo = { Job job ->
 
   def firstToLastBuilds = builds.reverse()
   firstToLastBuilds.iterator().each {
+
+	long startTime = it.startTimeInMillis
+	if( startTime < fromTime || startTime > toTime ){
+	  println "ignore this build " + it.number
+	  return
+	}
 
     def result = it.result
 	if(result == null)
@@ -157,6 +172,8 @@ def run = { viewPath, fromDateString, toDateString ->
 
   printlnJSONPrefix('{')
   printlnJSONPrefix('  \"view_path\":\"' + viewPathStr + '\",')
+  printlnJSONPrefix('  \"from_date\":\"' + fromDateString + '\",')
+  printlnJSONPrefix('  \"to_date\":\"' + toDateString + '\",')
   printlnJSONPrefix('  \"jobs\" :[')
 
   list = view.getItems()
@@ -165,7 +182,7 @@ def run = { viewPath, fromDateString, toDateString ->
     printlnJSONPrefix('    {')
 
 
-    printJobInfo(it)
+    printJobInfo(it, fromDateString, toDateString)
 
     if(i + 1 < list.size)
       printlnJSONPrefix('    },')
