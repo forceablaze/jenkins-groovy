@@ -36,7 +36,8 @@ def calcAverageRecoveryTime = { totalFailedTime, buildCount ->
 def printJobInfo = { Job job ->
   println('job name:' + job.name)
 
-  printlnJSONPrefix('      \"name\":\"' + job.name + '\",')
+  printlnJSONPrefix('      \"' + job.name +'\":{')
+  printlnJSONPrefix('        \"builds\":[')
 
   // never null. The first entry is the latest build.
   def builds = job.getBuilds()
@@ -46,6 +47,7 @@ def printJobInfo = { Job job ->
   def failedBuildNumber = 0
   def totalRecoveryTime = 0
   def buildCount = 0
+  def isFirst = true
 
   def firstToLastBuilds = builds.reverse()
   firstToLastBuilds.iterator().each {
@@ -68,14 +70,36 @@ def printJobInfo = { Job job ->
       return
 
 	// SUCCESS
+    if(isFirst)
+	  isFirst = false
+	else
+      printlnJSONPrefix('          ,')
+
 	recoveryTime = it.getStartTimeInMillis() - failedBuildTime
     println "recovery build: " + it.number
     println "recovery time from last failed build " + failedBuildNumber + ": " + formatDuration(recoveryTime)
 	totalRecoveryTime += recoveryTime
+
+    printlnJSONPrefix('          {')
+    printlnJSONPrefix('            \"number\":' + it.number + ',')
+    printlnJSONPrefix('            \"build_start_time\":' + it.getStartTimeInMillis() + ',')
+    printlnJSONPrefix('            \"failed_build_time\":' + failedBuildTime + ',')
+    printlnJSONPrefix('            \"recovery_time\":' + recoveryTime + ',')
+    printlnJSONPrefix('            \"recovery_string\":\"' + formatDuration(recoveryTime) + '\",')
+    printlnJSONPrefix('            \"total_recovery_time\":' + totalRecoveryTime + ',')
+
 	failedBuildTime = 0
 	buildCount++
-    //printBuildInfo(it)
+
+    long mttr = calcAverageRecoveryTime(totalRecoveryTime, buildCount)
+    def duration  = Duration.ofMillis(mttr)
+    printlnJSONPrefix('            \"mttr\":' + mttr + ',')
+    printlnJSONPrefix('            \"mttr_string\":\"' + formatDuration(duration.toMillis()) + '\"')
+    printlnJSONPrefix('          }')
   }
+
+  printlnJSONPrefix('        ],')
+
   println 'buildCount: ' + buildCount
   println 'totalRecoveryTime: ' + totalRecoveryTime
   long mttr = calcAverageRecoveryTime(totalRecoveryTime, buildCount)
@@ -83,13 +107,13 @@ def printJobInfo = { Job job ->
   def duration  = Duration.ofMillis(mttr)
 
   //println formatDuration(duration.toMillis())
-  printlnJSONPrefix('      \"build_count\":' + buildCount + ',')
+  printlnJSONPrefix('        \"build_count\":' + buildCount + ',')
   if(lastBuild != null)
-	  printlnJSONPrefix('      \"last_build_number\":' + lastBuild.number + ',')
-  printlnJSONPrefix('      \"total_recovery_time\":' + totalRecoveryTime + ',')
-  printlnJSONPrefix('      \"mttr\":' + mttr + ',')
-  printlnJSONPrefix('      \"mttr_string\":\"' + formatDuration(duration.toMillis()) + '\"')
-  println()
+	  printlnJSONPrefix('        \"last_build_number\":' + lastBuild.number + ',')
+  printlnJSONPrefix('        \"total_recovery_time\":' + totalRecoveryTime + ',')
+  printlnJSONPrefix('        \"mttr\":' + mttr + ',')
+  printlnJSONPrefix('        \"mttr_string\":\"' + formatDuration(duration.toMillis()) + '\"')
+  printlnJSONPrefix('      }')
 }
 
 def getNestedView
