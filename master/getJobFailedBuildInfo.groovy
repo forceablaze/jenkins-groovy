@@ -40,12 +40,18 @@ def calcAverageRecoveryTime = { totalFailedTime, buildCount ->
   return totalFailedTime / buildCount
 }
 
+def calcRate = { x, y ->
+  if(y == 0)
+    return 0
+  return Math.round(x/y * 10000) / 10000
+}
+
 // yyyyMMddHHmmss
 def printJobInfo = { Job job, fromDateString, toDateString ->
   println('job name:' + job.name)
 
-  printlnJSONPrefix('      \"name\":\"' + job.name + '\",')
-  printlnJSONPrefix('      \"builds\":[')
+  printlnJSONPrefix('      \"' + job.name +'\":{')
+  printlnJSONPrefix('        \"builds\":[')
 
   def fromDate = dateFormat.parse(fromDateString)
   def toDate = dateFormat.parse(toDateString)
@@ -82,18 +88,18 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
     if(isFirst)
 	  isFirst = false
 	else
-      printlnJSONPrefix('        ,')
+      printlnJSONPrefix('          ,')
 
-    printlnJSONPrefix('        {')
-    printlnJSONPrefix('          \"number\":' + it.number + ',')
-    printlnJSONPrefix('          \"result\":\"' + it.result + '\"')
+    printlnJSONPrefix('          {')
+    printlnJSONPrefix('            \"number\":' + it.number + ',')
+    printlnJSONPrefix('            \"result\":\"' + it.result + '\",')
 
 	buildCount += 1
     def sb = ''<<''
 	def date = new Date(startTime)
 	sb << it.number << " " << it.result << " " << date
 	println sb
-	
+ 	
 	// success build
 	if(result.equals(Result.SUCCESS))
 	  successBuildCount += 1
@@ -101,10 +107,19 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
 	else
 	  failedBuildCount += 1
 
-    printlnJSONPrefix('        }')
+    def failed_rate = calcRate(failedBuildCount, buildCount)
+    def success_rate = calcRate(successBuildCount, buildCount)
+    printlnJSONPrefix('            \"build_count\":' + buildCount + ',')
+    printlnJSONPrefix('            \"failed_build_count\":' + failedBuildCount + ',')
+    printlnJSONPrefix('            \"success_build_count\":' + successBuildCount + ',')
+    printlnJSONPrefix('            \"failed_rate\":' + failed_rate + ',')
+    printlnJSONPrefix('            \"success_rate\":' + success_rate)
+
+    printlnJSONPrefix('          }')
   }
 
 
+/*
   def failed_rate = 0
   def success_rate = 0
   if(buildCount == 0)
@@ -114,16 +129,21 @@ def printJobInfo = { Job job, fromDateString, toDateString ->
     success_rate = Math.round(successBuildCount/buildCount * 10000) / 10000
     //println '稼働率: ' + Math.round(failedBuildCount/buildCount * 10000) / 100 + "%"
   }
+*/
+  def failed_rate = calcRate(failedBuildCount, buildCount)
+  def success_rate = calcRate(successBuildCount, buildCount)
 
-  printlnJSONPrefix('      ],')
+  printlnJSONPrefix('        ],')
 
-  printlnJSONPrefix('      \"build_count\":' + buildCount + ',')
+  printlnJSONPrefix('        \"build_count\":' + buildCount + ',')
   if(lastBuild != null)
-	  printlnJSONPrefix('      \"last_build_number\":' + lastBuild.number + ',')
-  printlnJSONPrefix('      \"failed_count\":' + failedBuildCount + ',')
-  printlnJSONPrefix('      \"success_count\":' + successBuildCount + ',')
-  printlnJSONPrefix('      \"failed_rate\":' + failed_rate + ',')
-  printlnJSONPrefix('      \"success_rate\":' + success_rate)
+	  printlnJSONPrefix('        \"last_build_number\":' + lastBuild.number + ',')
+  printlnJSONPrefix('        \"failed_count\":' + failedBuildCount + ',')
+  printlnJSONPrefix('        \"success_count\":' + successBuildCount + ',')
+  printlnJSONPrefix('        \"failed_rate\":' + failed_rate + ',')
+  printlnJSONPrefix('        \"success_rate\":' + success_rate)
+
+  printlnJSONPrefix('      }')
 }
 
 def getNestedView
