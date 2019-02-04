@@ -50,7 +50,6 @@ def calcRate = { x, y ->
 def printJobInfo = { Job job, fromDateString, toDateString ->
   println('job name:' + job.name)
 
-  printlnJSONPrefix('      \"name\":\"' + job.name + '\",')
   printlnJSONPrefix('      \"' + job.name +'\":{')
   printlnJSONPrefix('        \"builds\":[')
 
@@ -182,6 +181,8 @@ def run = { viewPath, fromDateString = "19000101000000", toDateString = "2019012
 	  viewPathStr += '/'
   }
 
+  println 'TYPE'
+  println viewPath.class
   view = getNestedView(Hudson.instance.getViews(), viewPath)
 
 
@@ -189,22 +190,18 @@ def run = { viewPath, fromDateString = "19000101000000", toDateString = "2019012
   printlnJSONPrefix('  \"view_path\":\"' + viewPathStr + '\",')
   printlnJSONPrefix('  \"from_date\":\"' + fromDateString + '\",')
   printlnJSONPrefix('  \"to_date\":\"' + toDateString + '\",')
-  printlnJSONPrefix('  \"jobs\" :[')
+  printlnJSONPrefix('  \"jobs\" :{')
 
   list = view.getItems()
   for(def i = 0; i < list.size; i++) {
 	it = list[i]
 
-    printlnJSONPrefix('    {')
-
     printJobInfo(it, fromDateString, toDateString)
 
 
     if(i + 1 < list.size)
-      printlnJSONPrefix('    },')
-	else
-      printlnJSONPrefix('    }')
+      printlnJSONPrefix('      ,')
   }
-  printlnJSONPrefix('  ]')
+  printlnJSONPrefix('  }')
   printlnJSONPrefix('}')
 }
