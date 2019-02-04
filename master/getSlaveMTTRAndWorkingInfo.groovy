@@ -1,4 +1,3 @@
-import hudson.util.RemotingDiagnostics;
 import hudson.Util;
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -7,17 +6,10 @@ import java.util.Calendar
 import groovy.transform.Sortable
 import groovy.transform.ToString
 
-//list of threads
-//def List<Thread> threads = []
-
 def outputMap = [:]
 def slaveBuildHistory = [:]
 def slaveTimetable = [:]
 def List<Thread> threads = []
-
-print_ip = 'println InetAddress.localHost.hostAddress';
-print_hostname = 'println InetAddress.localHost.canonicalHostName';
-
 
 @Sortable
 class TimePeriod {
@@ -89,8 +81,8 @@ def printInstanceInfo = { Slave slave ->
   def sb = ''<<''
   outputMap << [(slaveName):sb]
 
-  def buildTimeLine = slave.computer.timeline
-  slaveBuildHistory << [(slaveName):buildTimeLine]
+  def allBuilds = slave.computer.builds
+  slaveBuildHistory << [(slaveName):allBuilds]
 
   def timeline = new ArrayList<TimeFlag>()
   slaveTimetable << [(slaveName):timeline]
@@ -100,22 +92,21 @@ def printInstanceInfo = { Slave slave ->
   def t = Thread.start {
     def strBuff = outputMap[slaveName]
     def computer = slave.getComputer()
-    def builds = slaveBuildHistory[slaveName].builds
+    def builds = slaveBuildHistory[slaveName]
 
     def line = slaveTimetable[slaveName]
     def iter = builds.iterator()
-    strBuff <<'build time line count:' + iter.size() + '\n'
+    strBuff <<'all build count:' + iter.size() + '\n'
 
+    // put each build timestamp to list
     builds.each {
 	  strBuff << 'job name:' << it.parent.name << ':' << it.number << '\n'
 
-      def startTimeInMillis = it.getStartTimeInMillis()
-      def timeInMillis = it.getTimeInMillis()
+      def start = it.getStartTimeInMillis()
+      def end = start + it.duration
 
-      def period = new TimePeriod(start: startTimeInMillis, duration: it.duration)
-
-      line << new TimeFlag(time: period.start, isStartTime: true)
-      line << new TimeFlag(time: period.end, isStartTime: false)
+      line << new TimeFlag(time: start, isStartTime: true)
+      line << new TimeFlag(time: end, isStartTime: false)
 	}
 
     def sorted_timeline = line.sort(false)
@@ -124,16 +115,18 @@ def printInstanceInfo = { Slave slave ->
 
     def depthCount = 0
 	def switchOn = true
+
+    // the start time of busy time period
 	def startTime = 0
     for(def idx = 0; idx < sorted_timeline.size(); idx++) {
       def item = sorted_timeline[idx]
-      strBuff <<'timetable:'<< item << ':' << depthCount << ':' << switchOn << '\n'
+      //strBuff <<'timetable:'<< item << ':' << depthCount << ':' << switchOn << '\n'
 
       if(item.isStartTime) {
 
+        // meet a new time period
         if(switchOn)
           startTime = item.time
-          //newTimeline << item
 
         if(depthCount == 0)
           switchOn = false
@@ -145,24 +138,24 @@ def printInstanceInfo = { Slave slave ->
 		if(depthCount == 0)
           switchOn = true
 
+        // meet the end time of current busy time
         if(switchOn)
           newTimePeriod << new TimePeriod(start: startTime, duration: item.time - startTime)
       }
 	}
-	strBuff << 'checked timeline count:' << newTimePeriod.size() << '\n'
+	strBuff << 'checked busy time period count:' << newTimePeriod.size() << '\n'
 
     def totalBusyTime = 0
     newTimePeriod.each {
-      strBuff <<'checked timetable:' + it + '\n'
       totalBusyTime += it.duration
     }
 
-    strBuff << 'totalBusyTime' << totalBusyTime << ':' << formatDuration(totalBusyTime) << '\n'
+    strBuff << slaveName << ':totalBusyTime:' << totalBusyTime << ':' << formatDuration(totalBusyTime) << '\n'
   }
   threads << t
 }
 
-def run = {
+def run = { fromDateString, toDateString ->
   println toDateString(getCurrentZonedTime())
 
   Hudson.instance.slaves.each { printInstanceInfo(it) }
