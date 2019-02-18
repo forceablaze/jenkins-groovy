@@ -10,7 +10,7 @@ def printlnJSONPrefix = { text ->
 
 def printJobInfo = { Job job ->
 
-  printlnJSONPrefix('  \'job_name\':\'' + job.name + '\',')
+  printlnJSONPrefix('  \"job_name\":\"' + job.name + '\",')
 
   def lastBuild = job.getLastBuild()
   long startTime = lastBuild.startTimeInMillis
@@ -24,8 +24,8 @@ def printJobInfo = { Job job ->
     lastResult = lastBuild.result
 
 
-  printlnJSONPrefix('  \'last_status\':\'' + lastResult + '\',')
-  printlnJSONPrefix('  \'last_start_time\':\'' + time + '\'')
+  printlnJSONPrefix('  \"last_status\":\"' + lastResult + '\",')
+  printlnJSONPrefix('  \"last_start_time\":\"' + time + '\"')
 }
 
 def run = { jobName = '', fromDateString, toDateString ->
