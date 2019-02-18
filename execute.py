@@ -36,22 +36,38 @@ def executeGroovyScript(scriptTextUrl, user, token, script, **args):
     append = False
     for key in args:
         append = True
-        print(args[key])
+        print(key, args[key])
 
     argString = ""
+    isFirst = True
     try:
-        viewPath = Path(args['view'])
-        viewArgString = "viewPath = ["
-        for p in viewPath.parts:
-            viewArgString += '\'{}\','.format(p)
-        viewArgString += "]"
-        argString += viewArgString
+        if 'view' in args.keys():
+            viewPath = Path(args['view'])
+            viewArgString = "viewPath = ["
+            for p in viewPath.parts:
+                viewArgString += '\'{}\','.format(p)
+            viewArgString += "]"
+            argString += viewArgString
+            isFirst = False
+
+        if 'job' in args.keys():
+            if not isFirst:
+                argString += ', '
+            argString += 'jobName = \'' + args['job'] + '\''
+            isFirst = False
 
 
-        fromDateString = args['from']
-        toDateString = args['to']
-        argString += ', fromDateString = \'' + fromDateString + '\''
-        argString += ', toDateString = \'' + toDateString + '\''
+        if 'from' in args.keys():
+            if not isFirst:
+                argString += ', '
+            argString += 'fromDateString = \'' + args['from'] + '\''
+            isFirst = False
+
+        if 'to' in args.keys():
+            if not isFirst:
+                argString += ', '
+            argString += 'toDateString = \'' + args['to'] + '\''
+            isFirst = False
     except KeyError:
         pass
 
@@ -101,6 +117,10 @@ if __name__ == '__main__':
         action = "store", dest = "node_name",
         help = "The node name")
 
+    parser.add_option("-j", "--job-name", type="string", default=None,
+        action = "store", dest = "job_name",
+        help = "The job name")
+
     parser.add_option("-F", "--from-date", type="string", default=None,
         action = "store", dest = "from_date",
         help = "from date time, ex: 20180101000000")
@@ -135,6 +155,9 @@ if __name__ == '__main__':
         # for JIT time UTC+9
         now += timedelta(seconds=32400)
         json_args['to'] = now.strftime("%Y%m%d%H%M%S")
+
+    if options.job_name is not None:
+        json_args['job'] = options.job_name
 
     # defult script
     script = 'println(Jenkins.instance.pluginManager.plugins)'
