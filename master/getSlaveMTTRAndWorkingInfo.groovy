@@ -9,11 +9,42 @@ import java.util.Calendar
 import groovy.transform.Sortable
 import groovy.transform.ToString
 
+// pipeline job and build
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
+import org.jenkinsci.plugins.workflow.job.WorkflowRun
+import hudson.util.RunList;
+
 def outputMap = [:]
 def slaveBuildHistory = [:]
 def slaveTimetable = [:]
 def List<Thread> threads = []
 def DURATION
+
+def getPipelineBuilds(Node node) {
+//  def list = RunList.fromJobs((Iterable)Hudson.instance.getAllItems(WorkflowJob.class))
+  def pipeLineJobs = Hudson.instance.getAllItems(WorkflowJob.class)
+  def runList = RunList.fromJobs((Iterable) pipeLineJobs)
+
+  println runList.size()
+
+  /*
+  def tList = []
+  runList.each {
+
+    def t = Thread.start {
+      def reader = new BufferedReader(it.getLogReader())
+      reader.close()
+    }
+	tList << t
+  }
+
+  tList.each {
+    it.join()
+  }
+  */
+
+  return RunList.fromJobs((Iterable)Hudson.instance.getAllItems(WorkflowJob.class)).node(node);
+}
 
 def getRate = { x ->
   return Math.round(x * 10000) / 10000
@@ -105,6 +136,8 @@ def getInstanceInfo = { Slave slave, fromDateEpoch, toDateEpoch, isLast ->
   //sb <<'Slave Name:' + slaveName + '\n'
   putJSONText(sb, '    \"' + slaveName + '\":{\n')
 
+  //println getPipelineBuilds(slave.getComputer().node).size()
+
   def t = Thread.start {
     def strBuff = outputMap[slaveName]
     def computer = slave.getComputer()
@@ -114,6 +147,7 @@ def getInstanceInfo = { Slave slave, fromDateEpoch, toDateEpoch, isLast ->
     def iter = builds.iterator()
     putJSONText(strBuff, '      \"builds\":{\n')
     // put each build timestamp to list
+
 
     def isFirst = true
 	def build_count = 0
@@ -217,7 +251,7 @@ def getInstanceInfo = { Slave slave, fromDateEpoch, toDateEpoch, isLast ->
   threads << t
 }
 
-def run = { fromDateString = null, toDateString = null ->
+def run = { toDateString = null ->
 
   DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -228,8 +262,7 @@ def run = { fromDateString = null, toDateString = null ->
 
   def toDate = LocalDateTime.parse(toDateString, formatter)
 
-  if(fromDateString == null)
-      fromDateString = formatDateString(toDate.minusDays(7))
+  def fromDateString = formatDateString(toDate.minusDays(7))
   def fromDate = LocalDateTime.parse(fromDateString, formatter)
 
   def fromDateEpoch = toEpochMillis(fromDate)
