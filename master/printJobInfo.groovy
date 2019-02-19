@@ -12,7 +12,7 @@ def printJobInfo = { Job job ->
 
   printlnJSONPrefix('  \"job_name\":\"' + job.name + '\",')
 
-  def lastBuild = job.getLastBuild()
+  def lastBuild = job.getLastCompletedBuild()
   long startTime = lastBuild.startTimeInMillis
 
   def time = ZonedDateTime.ofInstant(
